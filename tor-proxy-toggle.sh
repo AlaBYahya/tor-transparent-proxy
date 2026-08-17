@@ -57,6 +57,7 @@ enable_proxy() {
     # Block it in the filter table (nat table refuses DROP under nftables) so
     # browsers fall back to regular TCP/TLS on 443, which is redirected above.
     iptables -N "$FILTER_CHAIN" 2>/dev/null || iptables -F "$FILTER_CHAIN"
+    iptables -A "$FILTER_CHAIN" -m owner --uid-owner "$TOR_UID" -j RETURN
     for net in $LOCAL_NETS; do
         iptables -A "$FILTER_CHAIN" -d "$net" -j RETURN
     done
@@ -71,6 +72,7 @@ enable_proxy() {
     # care about (80/443/53) so those connections fail over IPv6 and the OS
     # falls back to IPv4, where the redirect above applies.
     ip6tables -N "$FILTER_CHAIN6" 2>/dev/null || ip6tables -F "$FILTER_CHAIN6"
+    ip6tables -A "$FILTER_CHAIN6" -m owner --uid-owner "$TOR_UID" -j RETURN
     for net in $LOCAL_NETS6; do
         ip6tables -A "$FILTER_CHAIN6" -d "$net" -j RETURN
     done
